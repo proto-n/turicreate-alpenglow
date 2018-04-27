@@ -11,6 +11,22 @@ for i in range(1, 53):
     print("running batch %d" % i)
     batch = pd.read_csv("batches/batch_%d_train.dat" % i)
     test_users = pd.read_csv("batches/batch_%d_test.dat" % i)
-    model = tc.ranking_factorization_recommender.create(tc.SFrame(batch), 'user', 'item', verbose=False)
+    # model = tc.ranking_factorization_recommender.create(
+    #     tc.SFrame(batch),
+    #     'user',
+    #     'item',
+    #     num_sampled_negative_examples=30,
+    #     verbose=False,
+    # )
+    model = tc.ranking_factorization_recommender.create(
+        tc.SFrame(batch),
+        'user',
+        'item',
+        num_factors=10,
+        verbose=True,
+        solver='ials',
+        max_iterations=50,
+        ials_confidence_scaling_factor=30
+    )
     results = model.recommend(users=test_users.user.values, k=100, exclude_known=True, verbose=False)
-    results.to_dataframe()[['user','item','rank']].to_csv('batches/batch_%d_predictions.dat', sep=' ', header=False)
+    results.to_dataframe()[['user', 'item', 'rank']].to_csv('batches/batch_%d_predictions.dat' % i, sep=' ', header=False)
